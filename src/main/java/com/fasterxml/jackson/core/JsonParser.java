@@ -164,6 +164,18 @@ public abstract class JsonParser
          */
          ALLOW_NON_NUMERIC_NUMBERS(false),
         
+         /**
+          * Feature that determines what happens when the parser input is
+          * closed while there are still unmatched
+          * {@link JsonToken#START_ARRAY} or {@link JsonToken#START_OBJECT}
+          * entries in output content. If enabled, such Array(s) and/or
+          * Object(s) are automatically closed; if disabled, nothing
+          * specific is done.
+          *<p>
+          * Feature is disabled by default.
+          */
+         GRACEFUL_EOF_ON_JSON_CONTENT(false),
+         
             ;
 
         /**

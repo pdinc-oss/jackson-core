@@ -475,7 +475,7 @@ public abstract class ParserBase
     @Override
     protected void _handleEOF() throws JsonParseException
     {
-        if (!_parsingContext.inRoot()) {
+        if (!_parsingContext.inRoot() && !isEnabled(JsonParser.Feature.GRACEFUL_EOF_ON_JSON_CONTENT)) {
             _reportInvalidEOF(": expected close marker for "+_parsingContext.getTypeDesc()+" (from "+_parsingContext.getStartLocation(_ioContext.getSourceReference())+")");
         }
     }

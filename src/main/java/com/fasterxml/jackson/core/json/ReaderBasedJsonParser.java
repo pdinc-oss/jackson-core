@@ -577,14 +577,20 @@ public final class ReaderBasedJsonParser
         boolean inObject = _parsingContext.inObject();
         if (inObject) {
            // First, field name itself:
-            String name = _parseFieldName(i);
-            _parsingContext.setCurrentName(name);
-            _currToken = JsonToken.FIELD_NAME;
-            i = _skipWS();
-            if (i != INT_COLON) {
-                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+            if (!isEnabled(JsonParser.Feature.GRACEFUL_EOF_ON_JSON_CONTENT) || i!=-1)
+            {
+                String name = _parseFieldName(i);
+                _parsingContext.setCurrentName(name);
+                _currToken = JsonToken.FIELD_NAME;
+                i = _skipWS();
+                if (!isEnabled(JsonParser.Feature.GRACEFUL_EOF_ON_JSON_CONTENT) || i!=-1)
+                {
+                    if (i != INT_COLON) {
+                        _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+                    }
+                    i = _skipWS();
+                }
             }
-            i = _skipWS();
         }
 
         // Ok: we must have a value... what is it?
@@ -592,6 +598,10 @@ public final class ReaderBasedJsonParser
         JsonToken t;
 
         switch (i) {
+        case -1:
+            inObject=false;
+            t = JsonToken.VALUE_NULL;
+            break;
         case INT_QUOTE:
             _tokenIncomplete = true;
             t = JsonToken.VALUE_STRING;
@@ -1184,6 +1194,7 @@ public final class ReaderBasedJsonParser
         while (true) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
+                    if (isEnabled(JsonParser.Feature.GRACEFUL_EOF_ON_JSON_CONTENT)) break;
                     _reportInvalidEOF(": was expecting closing '"+((char) endChar)+"' for name");
                 }
             }
@@ -1491,6 +1502,7 @@ public final class ReaderBasedJsonParser
         while (true) {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
+                    if (isEnabled(JsonParser.Feature.GRACEFUL_EOF_ON_JSON_CONTENT)) break;
                     _reportInvalidEOF(": was expecting closing quote for a string value");
                 }
             }
@@ -1619,6 +1631,7 @@ public final class ReaderBasedJsonParser
                 }
             }
         }
+        if (isEnabled(JsonParser.Feature.GRACEFUL_EOF_ON_JSON_CONTENT)) return -1;
         throw _constructError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
     }
 
@@ -1787,6 +1800,7 @@ public final class ReaderBasedJsonParser
         do {
             if (_inputPtr >= _inputEnd) {
                 if (!loadMore()) {
+                    if (isEnabled(JsonParser.Feature.GRACEFUL_EOF_ON_JSON_CONTENT)) return;
                     _reportInvalidEOFInValue();
                 }
             }
